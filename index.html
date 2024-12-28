@@ -7,8 +7,22 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>강림통술 리마인더</h1>
+  <h1 style="font-size: 20px;">강림통술 리마인더</h1>
   <hr />
+    <!-- 예약 등록 -->
+    <div class="GET_box_out">
+      <div class="GET_box_in">
+        <form id="reserveForm">
+          <input type="date" id="dateInput" class="post_date" />
+          <input type="time" id="timeInput" value="17:00" class="post_time" />
+          <input type="number" id="countInput" placeholder="인원수" min="0" max="100" required class="post_count" />
+          <input type="text" id="memoInput" placeholder="메모" class="post_text"/>
+          <input type="number" id="phoneInput" placeholder="번호 뒷자리" min="0" max="9999" required class="post_num"/>
+          <br />
+          <input class="submit_btn" type="submit" value="등록하기" />
+        </form>
+      </div>
+    </div>
 
   <!-- 모달 오버레이 및 창 (예약 수정/삭제) -->
   <div class="modal-overlay" id="modalOverlay">
@@ -35,20 +49,7 @@
     <!-- JS로 날짜별 day-box들을 생성 -> 오늘 날짜가 중앙에 위치 -->
   </div>
 
-  <!-- 예약 등록 -->
-  <div class="GET_box_out">
-    <div class="GET_box_in">
-      <form id="reserveForm">
-        <input type="date" id="dateInput" class="post_date" />
-        <input type="time" id="timeInput" value="17:00" class="post_time" />
-        <input type="number" id="countInput" placeholder="인원수" min="0" max="100" required class="post_count" />
-        <input type="text" id="memoInput" placeholder="메모" class="post_text"/>
-        <input type="number" id="phoneInput" placeholder="번호 뒷자리" min="0" max="9999" required class="post_num"/>
-        <br />
-        <input class="submit_btn" type="submit" value="등록하기" />
-      </form>
-    </div>
-  </div>
+
 
   <!-- Firebase 9.x compat (v9이지만 v8 문법 사용) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
