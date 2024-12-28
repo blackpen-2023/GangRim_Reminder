@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>강림통술 리마인더</title>
+  <style>
+    body {
+      width: 390px;
+      margin: auto;
+      background-color: rgb(230, 230, 230);
+    }
+    .POST_box_out { /*border: 1px black solid;*/ }
+    .POST_box_in {
+      min-height: 340px;
+      border: 1px black solid;
+      border-radius: 0.5rem;
+      padding-bottom: 20px;
+    }
+    .GET_box_out { /*border: 1px black solid;*/ }
+    .GET_box_in {
+      height: 200px;
+      border: 1px black solid;
+      border-radius: 0.5rem;
+    }
+    .blank {
+      height: 10px;
+    }
+    .post_date {
+      margin-top: 10px;
+      margin-left: 10px;
+      margin-right: 10px;
+      width: 170px;
+      height: 50px;
+    }
+    .post_time {
+      width: 170px;
+      height: 50px;
+    }
+    .post_count {
+      margin-top: 10px;
+      margin-left: 10px;
+      width: 61px;
+      height: 50px;
+    }
+    .post_text {
+      margin-top: 10px;
+      margin-left: 10px;
+      margin-right: 10px;
+      width: 83px;
+      height: 50px;
+    }
+    .post_num {
+      width: 167px;
+      height: 50px;
+    }
+    .submit_btn {
+      margin-top: 10px;
+      margin-left: 10px;
+      width: 363px;
+      height: 50px;
+    }
+    ul {
+      list-style: none; /* 기본 불릿 제거 */
+      padding: 0;       /* 여백 제거 */
+      margin: 0;        /* 외곽 여백 제거 */
+    }
+    li {
+      margin-top: 20px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 5px 10px;
+      width: 340px;
+      height: 40px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    li:hover {
+      border: 1px solid black;
+    }
+    .edit_btn {
+      margin-left: auto;
+      margin-right: auto;
+      display: flex;  /* 플렉스 컨테이너 */
+      align-items: center; /* 세로 정렬 */
+      justify-content: center; /* 가로 중앙 정렬 */
+      gap: 25px; /* <span>들 간 간격 */
+      border: none;
+    }
+    span {
+      font-size: 30px;
+    }
+    .modal-overlay {
+      display: none; /* 기본적으로 숨김 */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+      z-index: 1000;
+    }
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      width: 300px;
+      text-align: center;
+    }
+    .modal button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #ff2600;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .modal_submit_btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .modal button:hover {
+      background: #dd2100;
+    }
+    .modal_submit_btn:hover {
+      background: #0056b3;
+    }
+    .modal_input {
+      width: 200px;
+      height: 50px;
+      margin-bottom: 10px;
+    }
+    .modal_GET_box_in {
+      padding-top: 20px;
+      height: 400px;
+      border: 1px black solid;
+      border-radius: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="title_text">강림통술 리마인더</h1>
+  <hr />
+
+  <!-- 모달 오버레이 및 창 -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <!-- 모달 상단 정보 -->
+      <h2 id="modalInfo"></h2>
+      <div class="modal_GET_box_in">
+        <form>
+          <input type="date" id="modalDate" class="modal_input" />
+          <input type="time" id="modalTime" class="modal_input" value="17:00" />
+          <input type="number" id="modalCount" class="modal_input" placeholder="인원수" min="0" max="100"/>
+          <input type="text" id="modalMemo" class="modal_input" placeholder="메모"/>
+          <input type="number" id="modalPhone" class="modal_input" placeholder="번호 뒷자리" min="0" max="9999" />
+          <br />
+          <button id="deleteBtn">삭제하기</button>
+          <button id="updateBtn" class="modal_submit_btn">수정하기</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 오늘의 예약 목록 -->
+  <div class="GET_box_out">
+    <h2 style="margin-left: 10px;">오늘의 예약</h2>
+    <div class="POST_box_in">
+      <ul id="todayList"></ul>
+    </div>
+  </div>
+
+  <div class="blank"></div>
+
+  <!-- 예약등록 -->
+  <div class="GET_box_out">
+    <h2 style="margin-left: 10px;">예약등록</h2>
+    <div class="GET_box_in">
+      <form id="reserveForm">
+        <input type="date" id="dateInput" name="dateInput" class="post_date" />
+        <input type="time" id="timeInput" name="timeInput" value="17:00" class="post_time"/>
+        <input type="number" id="countInput" name="countInput" placeholder="인원수" min="0" max="100" required class="post_count"/>
+        <input type="text" id="memoInput" name="memoInput" placeholder="메모" class="post_text"/>
+        <input type="number" id="phoneInput" name="phoneInput" placeholder="번호 뒷자리" min="0" max="9999" required class="post_num"/>
+        <br />
+        <input class="submit_btn" type="submit" value="제출" />
+      </form>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+  /************************************
+   * 1) Firebase Config & 초기화
+   ************************************/
+   const firebaseConfig = {
+  apiKey: "AIzaSyBDTH4nPg5GAVwhlDPvruyjvI9GWwq83Ps",
+  authDomain: "gangrim-app.firebaseapp.com",
+  projectId: "gangrim-app",
+  storageBucket: "gangrim-app.firebasestorage.app",
+  messagingSenderId: "879563238448",
+  appId: "1:879563238448:web:42201b73406a3a716e91f5"
+};
+  // Firebase 초기화
+  firebase.initializeApp(firebaseConfig);
+  // Firestore 참조
+  const db = firebase.firestore();
+
+  /************************************
+   * 2) 예약 등록 (Submit)
+   ************************************/
+  const reserveForm = document.getElementById("reserveForm");
+  reserveForm.addEventListener("submit", async (event) => {
+    event.preventDefault(); // 폼 새로고침 방지
+
+    // 폼 값 가져오기
+    const dateVal = document.getElementById("dateInput").value;    // "YYYY-MM-DD" 문자열
+    const timeVal = document.getElementById("timeInput").value;    // "HH:mm" 문자열
+    const countVal = parseInt(document.getElementById("countInput").value, 10);
+    const memoVal = document.getElementById("memoInput").value;
+    const phoneNumVal = parseInt(document.getElementById("phoneInput").value, 10);
+
+    try {
+      await db.collection("reservations").add({
+        date: dateVal,      // 문자열 형태 "YYYY-MM-DD"
+        time: timeVal,      // 문자열 형태 "HH:mm"
+        count: countVal,
+        memo: memoVal,
+        phoneNum: phoneNumVal,
+        createdAt: new Date()
+      });
+      alert("예약이 등록되었습니다!");
+      reserveForm.reset();
+      loadTodayReservations(); // 등록 후 새로고침
+    } catch (error) {
+      console.error("Error adding reservation:", error);
+      alert("예약 등록에 실패했습니다.");
+    }
+  });
+
+  /************************************
+   * 3) 오늘의 예약 목록 불러오기
+   ************************************/
+  async function loadTodayReservations() {
+    const todayList = document.getElementById("todayList");
+    todayList.innerHTML = ""; // 초기화
+
+    // 오늘 날짜 YYYY-MM-DD
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayString = `${year}-${month}-${day}`;
+
+    console.log("오늘 날짜:", todayString);
+
+    try {
+      // Firestore에서 오늘 날짜의 예약만 가져오기 + time 기준 정렬(복합 인덱스 필요)
+      const querySnapshot = await db.collection("reservations")
+        .where("date", "==", todayString)
+        .orderBy("time", "asc")
+        .get();
+
+      console.log("불러온 문서 수:", querySnapshot.size);
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const li = document.createElement("li");
+        // 표시 내용
+        li.innerHTML = `
+          <button class="openModalButton edit_btn" data-id="${doc.id}">
+            <span>${data.time}</span>
+            <span>${data.count}명</span>
+            <span>${data.phoneNum}</span>
+            <span>${data.memo || ""}</span>
+          </button>
+        `;
+        todayList.appendChild(li);
+      });
+    } catch (err) {
+      console.error("Error getting reservations:", err);
+      // 인덱스 문제일 수 있으니 Firebase 콘솔에서 인덱스 확인
+    }
+  }
+
+  // 페이지 로딩 시 바로 실행
+  window.addEventListener("load", loadTodayReservations);
+
+  /************************************
+   * 4) 모달 동작 (수정/삭제)
+   ************************************/
+  // 모달 관련 요소
+  const modalOverlay = document.getElementById("modalOverlay");
+  const modalInfo = document.getElementById("modalInfo");
+  const modalDate = document.getElementById("modalDate");
+  const modalTime = document.getElementById("modalTime");
+  const modalCount = document.getElementById("modalCount");
+  const modalMemo = document.getElementById("modalMemo");
+  const modalPhone = document.getElementById("modalPhone");
+  const deleteBtn = document.getElementById("deleteBtn");
+  const updateBtn = document.getElementById("updateBtn");
+
+  // 오늘의 예약 항목 클릭 -> 모달 열기
+  document.addEventListener("click", async (e) => {
+    if (e.target.matches(".openModalButton, .openModalButton *")) {
+      const button = e.target.closest(".openModalButton");
+      const docId = button.dataset.id; // 문서 ID
+
+      try {
+        // 해당 예약 데이터 불러오기
+        const docRef = db.collection("reservations").doc(docId);
+        const docSnap = await docRef.get();
+        if (docSnap.exists) {
+          const { date, time, count, memo, phoneNum } = docSnap.data();
+          // 모달에 값 채워넣기
+          modalInfo.textContent = `${time} / ${count}명 / ${phoneNum}`;
+          modalDate.value = date;
+          modalTime.value = time;
+          modalCount.value = count;
+          modalMemo.value = memo;
+          modalPhone.value = phoneNum;
+          // 수정/삭제 버튼에 문서 ID 저장
+          deleteBtn.dataset.id = docId;
+          updateBtn.dataset.id = docId;
+          // 모달 열기
+          modalOverlay.style.display = "block";
+        }
+      } catch (error) {
+        console.error("Error loading reservation:", error);
+      }
+    }
+  });
+
+  // 모달 배경 클릭 -> 닫기
+  modalOverlay.addEventListener("click", (event) => {
+    if (event.target === modalOverlay) {
+      modalOverlay.style.display = "none";
+    }
+  });
+
+  // 모달에서 "삭제하기"
+  deleteBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const docId = e.target.dataset.id;
+    try {
+      await db.collection("reservations").doc(docId).delete();
+      alert("예약이 삭제되었습니다.");
+      modalOverlay.style.display = "none";
+      loadTodayReservations();
+    } catch (error) {
+      console.error("Error deleting reservation:", error);
+    }
+  });
+
+  // 모달에서 "수정하기"
+  updateBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const docId = e.target.dataset.id;
+    try {
+      await db.collection("reservations").doc(docId).update({
+        date: modalDate.value,             
+        time: modalTime.value,             
+        count: parseInt(modalCount.value, 10),
+        memo: modalMemo.value,
+        phoneNum: parseInt(modalPhone.value, 10),
+        updatedAt: new Date()
+      });
+      alert("예약이 수정되었습니다.");
+      modalOverlay.style.display = "none";
+      loadTodayReservations();
+    } catch (error) {
+      console.error("Error updating reservation:", error);
+    }
+  });
+</script>
+</body>
+</html>
