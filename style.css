@@ -94,7 +94,7 @@
     display: flex;        /* 플렉스 컨테이너 */
     align-items: center;  /* 세로 정렬 */
     justify-content: center;
-    gap: 25px;            /* <span>들 간 간격 */
+    gap: 25px;            /* <span>들 간 간격 */ 
     border: none;
     background: none;
     width: 100%;
