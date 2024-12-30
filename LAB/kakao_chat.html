@@ -73,86 +73,96 @@
     firebase.initializeApp(firebaseConfig);
     // Firestore 참조
     const db = firebase.firestore();
-
+        
     // Kakao SDK 초기화
     Kakao.init('54d26c41eb1c8f9a2f65295109bf658f');
 
-    // 로그인 및 메시지 전송 함수
-    async function sendKakaoChannelMessage(reservationData) {
+    // 카카오 로그인 함수
+    async function loginWithKakao() {
         try {
-            // 로그인 상태 확인 및 권한 요청
-            if (!Kakao.Auth.getAccessToken()) {
-            await new Promise((resolve, reject) => {
-                Kakao.Auth.login({
-                scope: 'talk_message', // 메시지 전송 권한 요청
-                success: function() {
-                    console.log('로그인 및 권한 승인 성공');
-                    resolve();
+            const response = await Kakao.Auth.login({
+                scope: 'talk_message',
+                success: function(response) {
+                    console.log('로그인 성공');
                 },
                 fail: function(error) {
                     console.error('로그인 실패:', error);
-                    reject(error);
                 }
-                });
             });
+        } catch (error) {
+            console.error('로그인 오류:', error);
+            throw error;
+        }
+    }
+
+    // 메시지 전송 함수
+    async function sendKakaoChannelMessage(reservationData) {
+        try {
+            // 로그인 상태 확인
+            if (!Kakao.Auth.getAccessToken()) {
+                await loginWithKakao();
             }
 
             // 메시지 전송
             await Kakao.API.request({
-            url: '/v2/api/talk/memo/default/send',
-            data: {
-                template_object: {
-                object_type: 'text',
-                text: `새로운 예약이 등록되었습니다!\n날짜: ${reservationData.date}\n시간: ${reservationData.time}\n인원: ${reservationData.count}명\n메모: ${reservationData.memo}\n전화번호: ${reservationData.phoneNum}`,
-                link: {
-                    mobile_web_url: 'https://developers.kakao.com',
-                    web_url: 'https://developers.kakao.com'
+                url: '/v2/api/talk/memo/default/send',
+                data: {
+                    template_object: {
+                        object_type: 'text',
+                        text: `새로운 예약이 등록되었습니다!\n날짜: ${reservationData.date}\n시간: ${reservationData.time}\n인원: ${reservationData.count}명\n메모: ${reservationData.memo}\n전화번호: ${reservationData.phoneNum}`,
+                        link: {
+                            mobile_web_url: 'https://developers.kakao.com',
+                            web_url: 'https://developers.kakao.com'
+                        }
+                    }
                 }
-                }
-            }
             });
-
+            
             console.log('메시지 전송 성공');
         } catch (error) {
-            console.error('메시지 전송 오류:', error);
-            alert('메시지 전송에 실패했습니다.');
+            console.error('메시지 전송 실패:', error);
+            throw error;
         }
     }
 
 
-
-
-    // 예약 등록 이벤트 리스너는 그대로 유지
+    // 예약 등록 이벤트 리스너
     const reserveForm = document.getElementById("reserveForm");
     reserveForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+        event.preventDefault();
 
-    const dateVal = document.getElementById("dateInput").value;
-    const timeVal = document.getElementById("timeInput").value;
-    const countVal = parseInt(document.getElementById("countInput").value, 10);
-    const memoVal = document.getElementById("memoInput").value;
-    const phoneNumVal = parseInt(document.getElementById("phoneInput").value, 10);
+        const dateVal = document.getElementById("dateInput").value;
+        const timeVal = document.getElementById("timeInput").value;
+        const countVal = parseInt(document.getElementById("countInput").value, 10);
+        const memoVal = document.getElementById("memoInput").value;
+        const phoneNumVal = parseInt(document.getElementById("phoneInput").value, 10);
 
-    const reservationData = {
-        date: dateVal,
-        time: timeVal,
-        count: countVal,
-        memo: memoVal,
-        phoneNum: phoneNumVal,
-        createdAt: new Date()
-    };
+        const reservationData = {
+            date: dateVal,
+            time: timeVal,
+            count: countVal,
+            memo: memoVal,
+            phoneNum: phoneNumVal,
+            createdAt: new Date()
+        };
 
-    try {
-        await db.collection("reservations").add(reservationData);
-        alert("예약이 등록되었습니다!");
-        await sendKakaoChannelMessage(reservationData);
-        reserveForm.reset();
-        renderGalleryDays();
-    } catch (error) {
-        console.error("Error adding reservation:", error);
-        alert("예약 등록에 실패했습니다.");
-    }
+        try {
+            // Firestore에 예약 데이터 저장
+            const docRef = await db.collection("reservations").add(reservationData);
+            
+            // 카카오톡 메시지 전송
+            await sendKakaoChannelMessage(reservationData);
+            
+            alert("예약이 등록되고 메시지가 전송되었습니다!");
+            reserveForm.reset();
+            renderGalleryDays();
+        } catch (error) {
+            console.error("Error:", error);
+            alert(error.msg || "예약 처리 중 오류가 발생했습니다.");
+        }
     });
+
+
 
 
     /************************************

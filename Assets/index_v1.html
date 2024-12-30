@@ -3,20 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>강림통술 리마인더 v2</title>
+  <title>강림통술 리마인더</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1 id="logo-text">강림통술 리마인더</h1>
+  <br><br>
+  <h1 id="logo-text">강림통술</h1>
+  <hr />
     <!-- 예약 등록 -->
     <div class="GET_box_out">
       <div class="GET_box_in">
         <form id="reserveForm">
           <input type="date" id="dateInput" class="post_date" />
           <input type="time" id="timeInput" value="17:00" class="post_time" />
-          <input type="number" id="countInput" placeholder="인원수" min="1" max="100" required class="post_count" />
+          <input type="number" id="countInput" placeholder="인원수" min="0" max="100" required class="post_count" />
           <input type="text" id="memoInput" placeholder="메모" class="post_text"/>
-          <input type="number" id="phoneInput" placeholder="번호" min="1111" max="9999" required class="post_num"/>
+          <input type="number" id="phoneInput" placeholder="번호 뒷자리" min="0" max="9999" required class="post_num"/>
           <br />
           <input class="submit_btn" type="submit" value="등록하기" />
         </form>
@@ -26,15 +28,14 @@
   <!-- 모달 오버레이 및 창 (예약 수정/삭제) -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
-      <h2>예약수정</h>
-      <p id="modalInfo" style="font-size: 10px;"></p>
+      <h3 id="modalInfo"></h3>
       <div class="modal_GET_box_in">
         <form>
           <input type="date" id="modalDate" class="modal_input" />
           <input type="time" id="modalTime" class="modal_input" value="17:00" />
           <input type="number" id="modalCount" class="modal_input" placeholder="인원수" min="0" max="100"/>
           <input type="text" id="modalMemo" class="modal_input" placeholder="메모"/>
-          <input type="number" id="modalPhone" class="modal_input" placeholder="번호" min="0" max="9999" />
+          <input type="number" id="modalPhone" class="modal_input" placeholder="번호 뒷자리" min="0" max="9999" />
           <br />
           <button id="deleteBtn" class="modal_remove_btn">삭제하기</button>
           <button id="updateBtn" class="modal_submit_btn">수정하기</button>
@@ -126,7 +127,6 @@
       const m = String(now.getMonth() + 1).padStart(2, '0');
       const d = String(now.getDate()).padStart(2, '0');
       const todayString = `${y}-${m}-${d}`;
-      
 
       // data-date="YYYY-MM-DD" 형태로 찾는다
       const currentDayBox = galleryContainer.querySelector(`[data-date="${todayString}"]`);
@@ -155,7 +155,6 @@
         const month = String(thisDate.getMonth() + 1).padStart(2, '0');
         const day = String(thisDate.getDate()).padStart(2, '0');
         const dateString = `${year}-${month}-${day}`;
-        const dateStringKR = `${year}년 ${month}월 ${day}일`;
 
         // 날짜별 박스 생성
         const dayBox = document.createElement("div");
@@ -165,7 +164,7 @@
 
         // 박스 헤더(날짜)
         const heading = document.createElement("h3");
-        heading.textContent = "예약목록  . " + dateStringKR;
+        heading.textContent = dateString + " 예약";
         dayBox.appendChild(heading);
 
         // UL 목록
@@ -183,7 +182,7 @@
           const li = document.createElement("li");
           li.innerHTML = `
             <button class="openModalButton edit_btn" data-id="${res.id}">
-              <span>${res.time}&nbsp;&nbsp;&nbsp;.</span>
+              <span>${res.time}</span>
               <span>${res.count}명</span>
               <span>${res.phoneNum}</span>
               <span>${res.memo || ""}</span>
@@ -226,7 +225,7 @@
           if (docSnap.exists) {
             const { date, time, count, memo, phoneNum } = docSnap.data();
             // 모달에 값 채워넣기
-            modalInfo.textContent = `[ ID: ${docId} ]`;
+            modalInfo.textContent = `[ID: ${docId}]`;
             modalDate.value = date;
             modalTime.value = time;
             modalCount.value = count;
